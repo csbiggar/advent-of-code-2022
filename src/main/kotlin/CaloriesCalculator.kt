@@ -10,7 +10,7 @@ fun main() {
 }
 
 
-class CaloriesCalculator(val input: String) {
+class CaloriesCalculator(private val input: String) {
 
     fun findHighestCalories(): Long {
         return findCaloriesPacks().maxOf { it }
