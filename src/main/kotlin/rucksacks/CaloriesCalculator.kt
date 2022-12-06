@@ -1,6 +1,8 @@
+package rucksacks
+
 fun main() {
 
-    val input = CaloriesCalculator::class.java.getResource("/day-1-1.txt")!!.readText()
+    val input = CaloriesCalculator::class.java.getResource("/day-1.txt")!!.readText()
 
     val caloriesCalculator = CaloriesCalculator(input)
 

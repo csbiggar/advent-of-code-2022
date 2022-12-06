@@ -1,7 +1,8 @@
-import games.Outcome
-import games.Outcome.*
-import games.RockPaperScissorsGame
-import games.Shape
+package games
+
+import games.Outcome.Draw
+import games.Outcome.Lose
+import games.Outcome.Win
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.params.ParameterizedTest
