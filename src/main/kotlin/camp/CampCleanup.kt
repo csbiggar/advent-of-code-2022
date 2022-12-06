@@ -4,6 +4,7 @@ fun main() {
     val input = CampCleanup::class.java.getResource("/day-4.txt")!!.readText().lines()
 
     println(CampCleanup(input).findDuplicatedAssignments().size)
+    println(CampCleanup(input).findOverlappingAssignments().size)
 }
 
 class CampCleanup(private val assignments: List<String>) {
@@ -12,6 +13,13 @@ class CampCleanup(private val assignments: List<String>) {
         return assignments
             .filter {
                 assignmentIsDuplicated(it)
+            }
+    }
+
+    fun findOverlappingAssignments(): List<String> {
+        return assignments
+            .filter {
+                assignmentsOverlap(it)
             }
     }
 
@@ -28,6 +36,13 @@ class CampCleanup(private val assignments: List<String>) {
             val assignment2 = explodeNumbers(assignmentPair.substringAfter(","))
 
             return assignment1.containsAll(assignment2) || assignment2.containsAll(assignment1)
+        }
+
+        fun assignmentsOverlap(assignmentPair: String): Boolean {
+            val assignment1 = explodeNumbers(assignmentPair.substringBefore(","))
+            val assignment2 = explodeNumbers(assignmentPair.substringAfter(","))
+
+            return assignment1.intersect(assignment2.toSet()).isNotEmpty()
         }
     }
 }
