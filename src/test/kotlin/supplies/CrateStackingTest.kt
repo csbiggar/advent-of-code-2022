@@ -23,7 +23,7 @@ move 1 from 1 to 2""".trimIndent()
             Stack(3, mutableListOf('P')),
         )
 
-        val instructions = listOf<CratesMove>(
+        val instructions = listOf(
             CratesMove(fromStack = 2, toStack = 1, numberToMove = 1),
             CratesMove(fromStack = 1, toStack = 3, numberToMove = 3),
             CratesMove(fromStack = 2, toStack = 1, numberToMove = 2),
@@ -33,9 +33,9 @@ move 1 from 1 to 2""".trimIndent()
         stacks.rearrangeCrates(instructions)
 
         assertThat(stacks).containsExactly(
-            Stack(1, mutableListOf('C')),
-            Stack(2, mutableListOf('M')),
-            Stack(3, mutableListOf('P', 'D', 'N', 'Z')),
+            Stack(1, mutableListOf('M')),
+            Stack(2, mutableListOf('C')),
+            Stack(3, mutableListOf('P', 'Z', 'N', 'D')),
         )
     }
 

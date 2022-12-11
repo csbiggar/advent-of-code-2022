@@ -24,7 +24,7 @@ fun List<Stack>.rearrangeCrates(instructions: List<CratesMove>) {
 
         val cratesToMove = fromStack.crates.takeLast(move.numberToMove)
 
-        toStack.crates.addAll(cratesToMove.reversed())
+        toStack.crates.addAll(cratesToMove)
         fromStack.crates.removeLast(move.numberToMove)
     }
 }
