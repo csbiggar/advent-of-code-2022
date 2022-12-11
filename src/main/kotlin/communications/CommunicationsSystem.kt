@@ -5,15 +5,16 @@ import rucksacks.CaloriesCalculator
 fun main() {
     val input = CaloriesCalculator::class.java.getResource("/day-6.txt")!!.readText()
 
-    println(reportAfterCharacter(input))
+    println(reportAfterCharacter(input, 4))
+    println(reportAfterCharacter(input, 14))
 
 }
 
-fun reportAfterCharacter(input: String): Int {
+fun reportAfterCharacter(input: String, distinctCharactersRequired: Int): Int {
     val indexOfFirst = input
-        .windowed(4, 1)
+        .windowed(distinctCharactersRequired, 1)
         .indexOfFirst {
-            it.toCharArray().distinct().size == 4
+            it.toCharArray().distinct().size == distinctCharactersRequired
         }
-    return indexOfFirst + 4
+    return indexOfFirst + distinctCharactersRequired
 }
