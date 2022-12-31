@@ -97,108 +97,58 @@ dir e
 
 }
 
-fun calculate(input: String): List<Long> {
-    val lines = input.lines().filterNot { it.isEmpty() }.drop(1)
 
-    var currentDirectory = Directory("/", emptyList(), emptyList())
-    val directories = mutableMapOf<String, Directory>()
+class DirectoriesTest {
 
-    println("starting directory $currentDirectory")
+    @Test
+    fun `no subdirectories`() {
+        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), emptyList())
 
-    for (line in lines) {
-        when {
-            isChangingIntoDirectory(line) -> {
-                val name = line.substringAfter("${'$'} cd ")
-
-                val fullyQualifiedName = getFullyQualifiedName(currentDirectory, name)
-
-                val directory = Directory(name = fullyQualifiedName, files = emptyList(), subDirectories = emptyList())
-
-                println("Change directory: $line Fully qualified name : $fullyQualifiedName")
-                directories[fullyQualifiedName] = directory
-                currentDirectory = directory
-            }
-
-            isSubdirectory(line) -> {
-
-                val name = line.substringAfter(" ")
-                val fullyQualifiedName = getFullyQualifiedName(currentDirectory, name)
-                println("Subdirectory $line, fully qualified name $fullyQualifiedName")
-
-
-                val subDirectory = directories.getOrDefault(fullyQualifiedName, Directory(name = fullyQualifiedName, files = emptyList(), subDirectories = emptyList()))
-                directories[fullyQualifiedName] = subDirectory
-            }
-
-            isChangingUpDirectory(line) -> {
-                // TODO
-                println("changing up a directory $line")
-            }
-
-            isListContents(line) -> {
-                // TODO
-                println("List $line")
-            }
-
-            else -> {
-                // it's a file
-                println("File $line")
-
-                val file = ElfFile(line.substringBefore(" ").toLong())
-                val updatedDirectory = currentDirectory.copy(files = currentDirectory.files + listOf(file))
-                directories[currentDirectory.name] = updatedDirectory
-            }
-        }
-
-
+        assertThat(dirA.size()).isEqualTo(3)
+        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(3)
     }
 
-    println(directories)
+    @Test
+    fun `one subdirectory with no subdirectories`() {
+        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirB))
 
-
-    val split = input
-        .split("${'$'} cd ")
-        .filterNot { it.isBlank() }
-        .reversed()
-
-    val folders = split
-        .map {
-            sumDirectory(it.lines())
-        }
-
-    val result = mutableListOf<Long>()
-
-    folders.indices.forEach {
-        result.add(folders.drop(it).sum())
+        assertThat(dirA.size()).isEqualTo(3)
+        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(8)
     }
 
-    return result
+    @Test
+    fun `one subdirectory with 2 subdirectories`() {
+        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirC = Directory("a", listOf(ElfFile(4), ElfFile(2)), emptyList())
+        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirB, dirC))
+
+        assertThat(dirA.size()).isEqualTo(3)
+        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(14)
+    }
+
+    @Test
+    fun `one subdirectory with 2 grandchildren`() {
+        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirC = Directory("a", listOf(ElfFile(4), ElfFile(2)), emptyList())
+        val dirZ = Directory("a", listOf(ElfFile(6)), listOf(dirB, dirC))
+        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirZ))
+
+        assertThat(dirA.size()).isEqualTo(3)
+        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(20)
+    }
+
+    @Test
+    fun `one subdirectory with 2 great grandchildren`() {
+        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirC = Directory("a", listOf(ElfFile(4), ElfFile(2)), emptyList())
+        val dirZ = Directory("a", listOf(ElfFile(6)), listOf(dirB, dirC))
+        val dirX = Directory("a", listOf(ElfFile(1)), listOf(dirZ))
+        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirX))
+
+        assertThat(dirA.size()).isEqualTo(3)
+        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(21)
+    }
+
 
 }
-
-private fun getFullyQualifiedName(currentDirectory: Directory, name: String) = if (currentDirectory.name == "/") "/$name" else "${currentDirectory.name}/$name"
-
-private fun isChangingUpDirectory(line: String) = line == "${'$'} cd .."
-
-private fun isListContents(line: String) = line == "${'$'} ls"
-
-private fun isChangingIntoDirectory(line: String) = line.startsWith("${'$'} cd") && line != "${'$'} cd .."
-
-private fun sumDirectory(lines: List<String>) = lines
-    .filterNot {
-        it.startsWith("${'$'}")
-                || isSubdirectory(it)
-                || it.isBlank()
-                || !it.contains(" ")
-    }
-    .sumOf { it.substringBefore(" ").toLong() }
-
-private fun isSubdirectory(line: String) = line.startsWith("dir")
-
-
-data class ElfFile(val size: Long)
-
-data class Directory(
-    val name: String,
-    val files: List<ElfFile>,
-    val subDirectories: List<Directory>)
