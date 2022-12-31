@@ -102,52 +102,81 @@ class DirectoriesTest {
 
     @Test
     fun `no subdirectories`() {
-        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), emptyList())
+        val dirA = Directory(DirectoryName("a"), listOf(ElfFile(1), ElfFile(2)), emptyList())
+
+        val allDirectories = mapOf(
+            dirA.name to dirA
+        )
 
         assertThat(dirA.size()).isEqualTo(3)
-        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(3)
+        assertThat(dirA.sizeIncludingSubDirectories(allDirectories)).isEqualTo(3)
     }
 
     @Test
     fun `one subdirectory with no subdirectories`() {
-        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
-        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirB))
+        val dirB = Directory(DirectoryName("b"), listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirA = Directory(DirectoryName("a"), listOf(ElfFile(1), ElfFile(2)), listOf(dirB).map { it.name })
+        val allDirectories = mapOf(
+            dirA.name to dirA,
+            dirB.name to dirB,
+        )
 
         assertThat(dirA.size()).isEqualTo(3)
-        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(8)
+        assertThat(dirA.sizeIncludingSubDirectories(allDirectories)).isEqualTo(8)
     }
 
     @Test
     fun `one subdirectory with 2 subdirectories`() {
-        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
-        val dirC = Directory("a", listOf(ElfFile(4), ElfFile(2)), emptyList())
-        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirB, dirC))
+        val dirB = Directory(DirectoryName("b"), listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirC = Directory(DirectoryName("c"), listOf(ElfFile(4), ElfFile(2)), emptyList())
+        val dirA = Directory(DirectoryName("a"), listOf(ElfFile(1), ElfFile(2)), listOf(dirB, dirC).map { it.name })
+
+        val allDirectories = mapOf(
+            dirA.name to dirA,
+            dirB.name to dirB,
+            dirC.name to dirC
+        )
 
         assertThat(dirA.size()).isEqualTo(3)
-        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(14)
+        assertThat(dirA.sizeIncludingSubDirectories(allDirectories)).isEqualTo(14)
     }
 
     @Test
     fun `one subdirectory with 2 grandchildren`() {
-        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
-        val dirC = Directory("a", listOf(ElfFile(4), ElfFile(2)), emptyList())
-        val dirZ = Directory("a", listOf(ElfFile(6)), listOf(dirB, dirC))
-        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirZ))
+        val dirB = Directory(DirectoryName("b"), listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirC = Directory(DirectoryName("c"), listOf(ElfFile(4), ElfFile(2)), emptyList())
+        val dirZ = Directory(DirectoryName("z"), listOf(ElfFile(6)), listOf(dirB, dirC).map { it.name })
+        val dirA = Directory(DirectoryName("a"), listOf(ElfFile(1), ElfFile(2)), listOf(dirZ).map { it.name })
+
+        val allDirectories = mapOf(
+            dirA.name to dirA,
+            dirB.name to dirB,
+            dirC.name to dirC,
+            dirZ.name to dirZ,
+        )
 
         assertThat(dirA.size()).isEqualTo(3)
-        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(20)
+        assertThat(dirA.sizeIncludingSubDirectories(allDirectories)).isEqualTo(20)
     }
 
     @Test
     fun `one subdirectory with 2 great grandchildren`() {
-        val dirB = Directory("a", listOf(ElfFile(3), ElfFile(2)), emptyList())
-        val dirC = Directory("a", listOf(ElfFile(4), ElfFile(2)), emptyList())
-        val dirZ = Directory("a", listOf(ElfFile(6)), listOf(dirB, dirC))
-        val dirX = Directory("a", listOf(ElfFile(1)), listOf(dirZ))
-        val dirA = Directory("a", listOf(ElfFile(1), ElfFile(2)), listOf(dirX))
+        val dirB = Directory(DirectoryName("b"), listOf(ElfFile(3), ElfFile(2)), emptyList())
+        val dirC = Directory(DirectoryName("c"), listOf(ElfFile(4), ElfFile(2)), emptyList())
+        val dirZ = Directory(DirectoryName("z"), listOf(ElfFile(6)), listOf(dirB, dirC).map { it.name })
+        val dirX = Directory(DirectoryName("x"), listOf(ElfFile(1)), listOf(dirZ).map { it.name })
+        val dirA = Directory(DirectoryName("a"), listOf(ElfFile(1), ElfFile(2)), listOf(dirX).map { it.name })
+
+        val allDirectories = mapOf(
+            dirA.name to dirA,
+            dirB.name to dirB,
+            dirC.name to dirC,
+            dirZ.name to dirZ,
+            dirX.name to dirX,
+        )
 
         assertThat(dirA.size()).isEqualTo(3)
-        assertThat(dirA.sizeIncludingSubDirectories()).isEqualTo(21)
+        assertThat(dirA.sizeIncludingSubDirectories(allDirectories)).isEqualTo(21)
     }
 
 
