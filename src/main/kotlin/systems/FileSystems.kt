@@ -4,7 +4,7 @@ fun calculate(input: String): List<Long> {
     val lines = input.lines().filterNot { it.isEmpty() }.drop(1)
 
     var currentDirectory = Directory("/", emptyList(), emptyList())
-    val directories = mutableMapOf<String, Directory>()
+    val directories: MutableMap<String, Directory> = mutableMapOf<String, Directory>()
 
     println("starting directory $currentDirectory")
 
@@ -23,7 +23,6 @@ fun calculate(input: String): List<Long> {
             }
 
             isSubdirectory(line) -> {
-
                 val name = line.substringAfter(" ")
                 val fullyQualifiedName = getFullyQualifiedName(currentDirectory, name)
                 println("Subdirectory $line, fully qualified name $fullyQualifiedName")
@@ -31,6 +30,7 @@ fun calculate(input: String): List<Long> {
 
                 val subDirectory = directories.getOrDefault(fullyQualifiedName, Directory(name = fullyQualifiedName, files = emptyList(), subDirectories = emptyList()))
                 directories[fullyQualifiedName] = subDirectory
+                directories[currentDirectory.name] = currentDirectory.copy(subDirectories = currentDirectory.subDirectories + listOf(subDirectory))
             }
 
             isChangingUpDirectory(line) -> {
@@ -57,9 +57,11 @@ fun calculate(input: String): List<Long> {
     }
 
 
+    directories.forEach { (_, directory) ->
+        println("size [${directory.size()}] full size [${directory.sizeIncludingSubDirectories()}] $directory")
+    }
 
-
-    TODO()
+    return directories.values.map { it.sizeIncludingSubDirectories() }.filterNot { it == 0L }
 
 }
 
