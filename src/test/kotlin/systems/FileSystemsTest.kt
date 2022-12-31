@@ -95,6 +95,68 @@ dir e
 
     }
 
+    @Test
+    fun `should find size of example`() {
+
+        val input = """${'$'} cd /
+${'$'} ls
+dir a
+14848514 b.txt
+8504156 c.dat
+dir d
+${'$'} cd a
+${'$'} ls
+dir e
+29116 f
+2557 g
+62596 h.lst
+${'$'} cd e
+${'$'} ls
+584 i
+${'$'} cd ..
+${'$'} cd ..
+${'$'} cd d
+${'$'} ls
+4060174 j
+8033020 d.log
+5626152 d.ext
+7214296 k"""
+
+        val result = calculate(input)
+
+        assertThat(result).containsOnly(584, 94853, 24933642, 48381165)
+
+    }
+
+    @Test
+    fun `should sum smallest file sizes`() {
+        val input = """${'$'} cd /
+${'$'} ls
+dir a
+14848514 b.txt
+8504156 c.dat
+dir d
+${'$'} cd a
+${'$'} ls
+dir e
+29116 f
+2557 g
+62596 h.lst
+${'$'} cd e
+${'$'} ls
+584 i
+${'$'} cd ..
+${'$'} cd ..
+${'$'} cd d
+${'$'} ls
+4060174 j
+8033020 d.log
+5626152 d.ext
+7214296 k"""
+
+        assertThat(findSumOfSmallFiles(input, 100000)).isEqualTo(95437)
+    }
+
 }
 
 

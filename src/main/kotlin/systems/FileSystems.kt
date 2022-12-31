@@ -1,47 +1,57 @@
 package systems
 
+import rucksacks.CaloriesCalculator
+
+
+fun main() {
+    val input = CaloriesCalculator::class.java.getResource("/day-7.txt")!!.readText()
+
+    val result = findSumOfSmallFiles(input, 100000)
+
+    println(result)
+}
+
+fun findSumOfSmallFiles(input: String, maxSize: Long): Long {
+    return calculate(input).filter { it <= maxSize }.sum()
+}
+
 fun calculate(input: String): List<Long> {
     val lines = input.lines().filterNot { it.isEmpty() }.drop(1)
 
-    var currentDirectory = Directory(DirectoryName("/"), emptyList(), emptyList())
-    val allDirectories: MutableMap<DirectoryName, Directory> = mutableMapOf(currentDirectory.name.copy() to currentDirectory.copy())
-
-    println("starting directory $currentDirectory")
+    val rootName = DirectoryName("/")
+    val allDirectories: MutableMap<DirectoryName, Directory> = mutableMapOf(rootName to Directory(rootName, emptyList(), emptyList()))
+    val position: MutableSet<DirectoryName> = mutableSetOf(rootName)
 
     for (line in lines) {
         when {
-            isChangingIntoDirectory(line) -> {
+            changeDirectory(line) -> {
                 val name = line.substringAfter("${'$'} cd ")
 
-                val newPosition = getFullyQualifiedName(currentDirectory, name)
-
-                val directory = Directory(name = newPosition, files = emptyList(), subDirectories = emptyList())
+                val newPosition = getFullyQualifiedName(position.last(), name)
 
                 println("Change directory: $line Fully qualified name : $newPosition")
-                allDirectories[newPosition] = directory
-                currentDirectory = directory
+                position.add(newPosition)
             }
 
-            isSubdirectory(line) -> {
-                val name = line.substringAfter(" ")
-                val fullyQualifiedName = getFullyQualifiedName(currentDirectory, name)
-                println("Subdirectory $line, fully qualified name $fullyQualifiedName")
+            subdirectoryName(line) -> {
+                val relativeName = line.substringAfter(" ")
+                val name = getFullyQualifiedName(position.last(), relativeName)
+                println("Subdirectory $line, fully qualified name $name")
 
-                val subDirectory = allDirectories.getOrDefault(fullyQualifiedName, Directory(name = fullyQualifiedName, files = emptyList(), subDirectories = emptyList()))
-                allDirectories[fullyQualifiedName] = subDirectory
+                val subDirectory = Directory(name = name, files = emptyList(), subDirectories = emptyList())
+                allDirectories[name] = subDirectory
 
-                currentDirectory = currentDirectory.copy(subDirectories = currentDirectory.subDirectories + listOf(subDirectory.name))
-                allDirectories[currentDirectory.name] = currentDirectory
+                val currentDirectory = allDirectories[position.last()]!!
+                allDirectories[position.last()] = currentDirectory.copy(subDirectories = currentDirectory.subDirectories + listOf(subDirectory.name))
 
                 println("Added this directory to current directory ${currentDirectory.name}'s subdirectories: ${allDirectories[currentDirectory.name]}")
             }
 
-            isChangingUpDirectory(line) -> {
-                // TODO
-                println("changing up a directory $line")
+            changeUpDirectory(line) -> {
+                position.remove(position.last())
             }
 
-            isListContents(line) -> {
+            listContents(line) -> {
                 // TODO
                 println("List $line")
             }
@@ -51,8 +61,8 @@ fun calculate(input: String): List<Long> {
                 println("File $line")
 
                 val file = ElfFile(line.substringBefore(" ").toLong())
-                currentDirectory = currentDirectory.copy(files = currentDirectory.files + listOf(file))
-                allDirectories[currentDirectory.name] = currentDirectory
+                val currentDirectory = allDirectories[position.last()]!!
+                allDirectories[currentDirectory.name] = currentDirectory.copy(files = currentDirectory.files + listOf(file))
             }
         }
 
@@ -68,27 +78,27 @@ fun calculate(input: String): List<Long> {
 
 }
 
-private fun getFullyQualifiedName(currentDirectory: Directory, name: String): DirectoryName {
-    val stringName = if (currentDirectory.name.id == "/") "/$name" else "${currentDirectory.name.id}/$name"
+private fun getFullyQualifiedName(currentDirectory: DirectoryName, name: String): DirectoryName {
+    val stringName = if (currentDirectory.id == "/") "/$name" else "${currentDirectory.id}/$name"
     return DirectoryName(stringName)
 }
 
-private fun isChangingUpDirectory(line: String) = line == "${'$'} cd .."
+private fun changeUpDirectory(line: String) = line == "${'$'} cd .."
 
-private fun isListContents(line: String) = line == "${'$'} ls"
+private fun listContents(line: String) = line == "${'$'} ls"
 
-private fun isChangingIntoDirectory(line: String) = line.startsWith("${'$'} cd") && line != "${'$'} cd .."
+private fun changeDirectory(line: String) = line.startsWith("${'$'} cd") && line != "${'$'} cd .."
 
 private fun sumDirectory(lines: List<String>) = lines
     .filterNot {
         it.startsWith("${'$'}")
-                || isSubdirectory(it)
+                || subdirectoryName(it)
                 || it.isBlank()
                 || !it.contains(" ")
     }
     .sumOf { it.substringBefore(" ").toLong() }
 
-private fun isSubdirectory(line: String) = line.startsWith("dir")
+private fun subdirectoryName(line: String) = line.startsWith("dir")
 
 
 data class ElfFile(val size: Long)
