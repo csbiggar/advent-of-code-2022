@@ -12,7 +12,7 @@ fun main() {
 
     // Part 2
     val sorted = calculateDirectorySizes(input).sorted()
-    val spaceRequired  = 30_000_000 - (70_000_000 - sorted.last())
+    val spaceRequired = 30_000_000 - (70_000_000 - sorted.last())
     val smallestSuitableDirectorySize = sorted.first { it >= spaceRequired }
     println(smallestSuitableDirectorySize)
 
@@ -32,26 +32,17 @@ fun calculateDirectorySizes(input: String): List<Long> {
     for (line in lines) {
         when {
             changeDirectory(line) -> {
-                val name = line.substringAfter("${'$'} cd ")
-
-                val newPosition = getFullyQualifiedName(position.last(), name)
-
-                println("Change directory: $line Fully qualified name : $newPosition")
-                position.add(newPosition)
+                val relativeName = line.substringAfter("${'$'} cd ")
+                val name = getFullyQualifiedName(position.last(), relativeName)
+                position.add(name)
             }
 
-            subdirectoryName(line) -> {
+            registerSubDirectory(line) -> {
                 val relativeName = line.substringAfter(" ")
                 val name = getFullyQualifiedName(position.last(), relativeName)
-                println("Subdirectory $line, fully qualified name $name")
 
-                val subDirectory = Directory(name = name, files = emptyList(), subDirectories = emptyList())
-                allDirectories[name] = subDirectory
-
-                val currentDirectory = allDirectories[position.last()]!!
-                allDirectories[position.last()] = currentDirectory.copy(subDirectories = currentDirectory.subDirectories + listOf(subDirectory.name))
-
-                println("Added this directory to current directory ${currentDirectory.name}'s subdirectories: ${allDirectories[currentDirectory.name]}")
+                registerDirectory(name, allDirectories)
+                addSubdirectoryReferenceToCurrentDirectory(allDirectories, position, name)
             }
 
             changeUpDirectory(line) -> {
@@ -59,17 +50,13 @@ fun calculateDirectorySizes(input: String): List<Long> {
             }
 
             listContents(line) -> {
-                // TODO
-                println("List $line")
+                // No action required
             }
 
             else -> {
-                // it's a file
-                println("File $line")
-
+                // It's a file
                 val file = ElfFile(line.substringBefore(" ").toLong())
-                val currentDirectory = allDirectories[position.last()]!!
-                allDirectories[currentDirectory.name] = currentDirectory.copy(files = currentDirectory.files + listOf(file))
+                addFileToCurrentDirectory(allDirectories, position, file)
             }
         }
     }
@@ -81,6 +68,21 @@ fun calculateDirectorySizes(input: String): List<Long> {
 
     return allDirectories.values.map { it.sizeIncludingSubDirectories(allDirectories) }.filterNot { it == 0L }
 
+}
+
+private fun addFileToCurrentDirectory(allDirectories: MutableMap<DirectoryName, Directory>, position: MutableSet<DirectoryName>, file: ElfFile) {
+    val currentDirectory = allDirectories[position.last()]!!
+    allDirectories[currentDirectory.name] = currentDirectory.copy(files = currentDirectory.files + listOf(file))
+}
+
+private fun addSubdirectoryReferenceToCurrentDirectory(allDirectories: MutableMap<DirectoryName, Directory>, position: MutableSet<DirectoryName>, subdirectoryName: DirectoryName) {
+    val currentDirectory = allDirectories[position.last()]!!
+    allDirectories[currentDirectory.name] = currentDirectory.copy(subDirectories = currentDirectory.subDirectories + listOf(subdirectoryName))
+}
+
+private fun registerDirectory(name: DirectoryName, allDirectories: MutableMap<DirectoryName, Directory>) {
+    val subDirectory = Directory(name = name, files = emptyList(), subDirectories = emptyList())
+    allDirectories[name] = subDirectory
 }
 
 private fun getFullyQualifiedName(currentDirectory: DirectoryName, name: String): DirectoryName {
@@ -97,13 +99,13 @@ private fun changeDirectory(line: String) = line.startsWith("${'$'} cd") && line
 private fun sumDirectory(lines: List<String>) = lines
     .filterNot {
         it.startsWith("${'$'}")
-                || subdirectoryName(it)
+                || registerSubDirectory(it)
                 || it.isBlank()
                 || !it.contains(" ")
     }
     .sumOf { it.substringBefore(" ").toLong() }
 
-private fun subdirectoryName(line: String) = line.startsWith("dir")
+private fun registerSubDirectory(line: String) = line.startsWith("dir")
 
 
 data class ElfFile(val size: Long)
