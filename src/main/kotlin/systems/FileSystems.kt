@@ -6,16 +6,23 @@ import rucksacks.CaloriesCalculator
 fun main() {
     val input = CaloriesCalculator::class.java.getResource("/day-7.txt")!!.readText()
 
+    // Part 1
     val result = findSumOfSmallFiles(input, 100000)
-
     println(result)
+
+    // Part 2
+    val sorted = calculateDirectorySizes(input).sorted()
+    val spaceRequired  = 30_000_000 - (70_000_000 - sorted.last())
+    val smallestSuitableDirectorySize = sorted.first { it >= spaceRequired }
+    println(smallestSuitableDirectorySize)
+
 }
 
 fun findSumOfSmallFiles(input: String, maxSize: Long): Long {
-    return calculate(input).filter { it <= maxSize }.sum()
+    return calculateDirectorySizes(input).filter { it <= maxSize }.sum()
 }
 
-fun calculate(input: String): List<Long> {
+fun calculateDirectorySizes(input: String): List<Long> {
     val lines = input.lines().filterNot { it.isEmpty() }.drop(1)
 
     val rootName = DirectoryName("/")
@@ -65,13 +72,11 @@ fun calculate(input: String): List<Long> {
                 allDirectories[currentDirectory.name] = currentDirectory.copy(files = currentDirectory.files + listOf(file))
             }
         }
-
-
     }
 
 
-    allDirectories.forEach { (_, directory) ->
-        println("size [${directory.size()}] full size [${directory.sizeIncludingSubDirectories(allDirectories)}] $directory")
+    allDirectories.forEach { (name, directory) ->
+        println("${name.id} :size [${directory.size()}] full size [${directory.sizeIncludingSubDirectories(allDirectories)}] $directory")
     }
 
     return allDirectories.values.map { it.sizeIncludingSubDirectories(allDirectories) }.filterNot { it == 0L }

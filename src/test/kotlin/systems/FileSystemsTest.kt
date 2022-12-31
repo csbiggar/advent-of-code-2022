@@ -2,6 +2,7 @@ package systems
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import rucksacks.CaloriesCalculator
 
 class FileSystemsTest {
 
@@ -15,7 +16,7 @@ dir a
 300 c.dat"""
 
 
-        val result = calculate(input)
+        val result = calculateDirectorySizes(input)
 
         assertThat(result).containsOnly(500)
 
@@ -36,7 +37,7 @@ dir e
 500 g"""
 
 
-        val result = calculate(input)
+        val result = calculateDirectorySizes(input)
 
         assertThat(result).containsOnly(900, 1400)
 
@@ -61,7 +62,7 @@ ${'$'} ls
 """
 
 
-        val result = calculate(input)
+        val result = calculateDirectorySizes(input)
 
         assertThat(result).containsOnly(600, 1500, 2000)
 
@@ -89,7 +90,7 @@ dir e
 700 g"""
 
 
-        val result = calculate(input)
+        val result = calculateDirectorySizes(input)
 
         assertThat(result).containsOnly(2700, 1300, 900)
 
@@ -122,14 +123,14 @@ ${'$'} ls
 5626152 d.ext
 7214296 k"""
 
-        val result = calculate(input)
+        val result = calculateDirectorySizes(input)
 
         assertThat(result).containsOnly(584, 94853, 24933642, 48381165)
 
     }
 
     @Test
-    fun `should sum smallest file sizes`() {
+    fun `should sum smallest file sizes for the example`() {
         val input = """${'$'} cd /
 ${'$'} ls
 dir a
@@ -155,6 +156,16 @@ ${'$'} ls
 7214296 k"""
 
         assertThat(findSumOfSmallFiles(input, 100000)).isEqualTo(95437)
+    }
+
+    @Test
+    fun `should sum smallest file sizes for the real input`() {
+        val input = CaloriesCalculator::class.java.getResource("/day-7.txt")!!.readText()
+
+        // Part 1
+        val result = findSumOfSmallFiles(input, 100000)
+
+        assertThat(result).isEqualTo(1583951)
     }
 
 }
