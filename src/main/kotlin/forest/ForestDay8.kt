@@ -8,6 +8,7 @@ fun main() {
     val forest = Forest.fromInput(input)
 
     println(forest.countVisibleTrees())
+    println(forest.maxScenicScore())
 }
 
 class Forest(val trees: List<Tree>) {
@@ -27,9 +28,7 @@ class Forest(val trees: List<Tree>) {
         }
     }
 
-    private fun canView(tree: Tree): Boolean {
-        return canView(tree.x, tree.y)
-    }
+    private fun canView(tree: Tree) = canView(tree.x, tree.y)
 
     fun canView(x: Int, y: Int): Boolean {
 
@@ -51,14 +50,44 @@ class Forest(val trees: List<Tree>) {
                 || right.allSmallerThan(thisTree)
     }
 
+    private fun getScenicScore(tree: Tree): Int = getScenicScore(tree.x, tree.y)
+
+    fun getScenicScore(x: Int, y: Int): Int {
+
+        val thisTree = trees.single { it.x == x && it.y == y }
+
+        val col = trees.filter { it.x == x }
+        val up = col.subList(0, y).reversed()
+        val down = col.subList(y + 1, maxIndex + 1)
+
+        val row = trees.filter { it.y == y }
+        val left = row.subList(0, x).reversed()
+        val right = row.subList(x + 1, maxIndex + 1)
+
+
+        return up.viewingDistanceForHeight(thisTree.height) *
+                down.viewingDistanceForHeight(thisTree.height) *
+                left.viewingDistanceForHeight(thisTree.height) *
+                right.viewingDistanceForHeight(thisTree.height)
+    }
+
+    private fun List<Tree>.viewingDistanceForHeight(allowedHeight: Int): Int {
+        val indexOfFirstBlockingTree = indexOfFirst { it.height >= allowedHeight }
+        return if (indexOfFirstBlockingTree == -1) this.size else indexOfFirstBlockingTree + 1
+    }
+
     fun countVisibleTrees(): Int {
-        return trees.map {
+        return trees
+            .map {
+                canView(it)
+            }
+            .count { it }
+    }
 
-            val canView = canView(it)
-            println("$it, visible [$canView]")
-            canView
-
-        }.count { it }
+    fun maxScenicScore(): Int {
+        return trees.maxOf {
+            getScenicScore(it)
+        }
     }
 
     private fun List<Tree>.allSmallerThan(thisTree: Tree): Boolean {
